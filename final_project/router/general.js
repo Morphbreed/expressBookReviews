@@ -4,6 +4,12 @@ let isValid = require("./auth_users.js").isValid;
 let users = require("./auth_users.js").users;
 const public_users = express.Router();
 
+const bookPromise = new Promise((resolve, reject) => {
+  setTimeout(() => {
+    resolve(books);
+  }, 40000);
+});
+
 public_users.post("/register", (req, res) => {
   const { username, password } = req.body;
 
@@ -29,14 +35,17 @@ public_users.post("/register", (req, res) => {
   return res.status(200).json({ message: "Registration success!" });
 });
 
-public_users.get("/", function (req, res) {
-  return res.json(books);
+public_users.get("/", async function (req, res) {
+  const result = await bookPromise;
+
+  return res.json({ result });
 });
 
-public_users.get("/isbn/:isbn", function (req, res) {
+public_users.get("/isbn/:isbn", async function (req, res) {
   const { isbn } = req.params;
 
-  const book = books[isbn];
+  const result = await bookPromise;
+  const book = result[isbn];
 
   if (book) {
     return res.json(book);
@@ -45,28 +54,29 @@ public_users.get("/isbn/:isbn", function (req, res) {
   return res.status(404).json({ message: "Book not found" });
 });
 
-public_users.get("/author/:author", function (req, res) {
+public_users.get("/author/:author", async function (req, res) {
   const { author } = req.params;
 
-  const filteredBooks = Object.values(books).filter(
+  const result = await bookPromise;
+  const filteredBooks = Object.values(result).filter(
     (book) => book.author === author,
   );
 
   return res.json(filteredBooks);
 });
 
-public_users.get("/title/:title", function (req, res) {
+public_users.get("/title/:title", async function (req, res) {
   const { title } = req.params;
-  console.log(title);
 
-  const filteredBooks = Object.values(books).filter(
+  const result = await bookPromise;
+
+  const filteredBooks = Object.values(result).filter(
     (book) => book.title === title,
   );
 
   return res.json(filteredBooks);
 });
 
-//  Get book review
 public_users.get("/review/:isbn", function (req, res) {
   const { isbn } = req.params;
 
