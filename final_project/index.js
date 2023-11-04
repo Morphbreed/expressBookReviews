@@ -19,6 +19,7 @@ app.use(
 
 function authenticate(req, res, next) {
   const token = req.session.token;
+  console.log(token);
 
   if (token == null) {
     return res.sendStatus(401); // Unauthorized
@@ -34,7 +35,23 @@ function authenticate(req, res, next) {
   });
 }
 
-app.use("/customer/auth/*", authenticate);
+app.use("/customer/auth/*", function (req, res, next) {
+  const token = req.session.token;
+  console.log(token);
+
+  if (token == null) {
+    return res.sendStatus(401); // Unauthorized
+  }
+
+  jwt.verify(token, "secret", (err, user) => {
+    if (err) {
+      return res.sendStatus(403); // Forbidden
+    }
+    // If the token is valid, you can proceed with the next middleware or your main logic.
+    req.user = user;
+    next();
+  });
+});
 
 const PORT = 5000;
 
